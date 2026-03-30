@@ -1,12 +1,13 @@
 # Nixpacks configuration for GridSync Frontend - Coolify
 # Deploy this as a separate service in Coolify
-# Set Base Directory in Coolify to: /apps/web
+# Set Base Directory in Coolify to: apps/web
 
 [phases.setup]
-nixPkgs = ["nodejs_20", "pnpm"]
+nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = [
+  "npm install -g pnpm@9.0.0",
   "cd ../.. && pnpm install --frozen-lockfile"
 ]
 
@@ -21,6 +22,7 @@ cmd = "npm run start"
 [variables]
 NODE_ENV = "production"
 PORT = "3000"
+NIXPACKS_NO_MUSL = "1"
 # REPLACE WITH YOUR ACTUAL URLs
 # Set these in Coolify environment variables (IMPORTANT: Set before build):
 # - NEXT_PUBLIC_API_URL=https://your-backend-url.com
