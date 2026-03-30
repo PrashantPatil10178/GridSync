@@ -1,0 +1,29 @@
+# Nixpacks configuration for GridSync - Coolify deployment
+# Deploys both API (Socket.io) and Web (Next.js) as a single service
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "pnpm", "openssl"]
+
+[phases.install]
+cmds = [
+  "corepack enable",
+  "corepack prepare pnpm@9.0.0 --activate",
+  "pnpm install --frozen-lockfile"
+]
+
+[phases.build]
+cmds = [
+  "cd apps/api && npx prisma generate",
+  "pnpm --filter api build",
+  "pnpm --filter web build",
+  "cd apps/api && npx prisma db push --skip-generate",
+  "cd apps/api && node prisma/seed.cjs"
+]
+
+[start]
+cmd = "node server.js"
+
+[variables]
+NODE_ENV = "production"
+PORT = "3000"
+API_PORT = "3001"

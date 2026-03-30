@@ -1,159 +1,287 @@
-# Turborepo starter
+# GridSync 🟦
 
-This Turborepo starter is maintained by the Turborepo core team.
+A **real-time collaborative grid application** where multiple users can claim tiles and see updates instantly. Built with modern technologies and a focus on clean architecture, smooth UI/UX, and correct real-time behavior.
 
-## Using this example
+![GridSync Preview](https://via.placeholder.com/800x400?text=GridSync+Real-Time+Grid)
 
-Run the following command:
+## ✨ Features
 
-```sh
-npx create-turbo@latest
+- **Real-time synchronization** - All connected users see tile claims instantly
+- **Smooth animations** - Framer Motion powered micro-interactions
+- **Dark theme** - Linear/Vercel inspired minimal design
+- **Race condition handling** - Server is the source of truth
+- **Claim cooldown** - 2 second cooldown between claims to prevent spam
+- **User colors** - Each user gets a unique vibrant color
+- **Connection status** - Visual indicator of WebSocket connection
+- **Active users count** - See how many users are online
+
+## 🏗️ Architecture
+
+```
+GridSync/
+├── apps/
+│   ├── web/          # Next.js 16 frontend
+│   │   ├── app/      # App router pages
+│   │   ├── hooks/    # Custom React hooks (useGridSocket)
+│   │   └── lib/      # Utilities
+│   └── api/          # Node.js + Express + Socket.io backend
+│       ├── src/      # Server source code
+│       └── prisma/   # Database schema & migrations
+├── packages/
+│   ├── ui/           # Shared React components (Grid, Tile, StatusBar)
+│   ├── types/        # Shared TypeScript types & constants
+│   ├── typescript-config/
+│   └── eslint-config/
+└── turbo.json        # Turborepo configuration
 ```
 
-## What's inside?
+## 🔌 Real-Time Flow
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```
+Client                          Server
+   |                               |
+   |-------- connect ------------->|
+   |<------- INIT_GRID ------------|  (full grid state + userId + userColor)
+   |                               |
+   |-------- CLAIM_TILE ---------->|  (tileId)
+   |                               |  [validate, check ownership, save to DB]
+   |<------- TILE_UPDATED ---------|  (broadcast to ALL clients)
+   |                               |
+   |<------- USER_COUNT -----------|  (on connect/disconnect)
 ```
 
-Without global `turbo`, use your package manager:
+### Socket Events
 
-```sh
-cd my-turborepo
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+| Event            | Direction       | Payload                                | Description                      |
+| ---------------- | --------------- | -------------------------------------- | -------------------------------- |
+| `INIT_GRID`      | Server → Client | `{ tiles, gridSize, user, userCount }` | Initial grid state on connection |
+| `CLAIM_TILE`     | Client → Server | `{ tileId }`                           | Request to claim a tile          |
+| `TILE_UPDATED`   | Server → All    | `{ tile }`                             | Broadcast when a tile is claimed |
+| `USER_COUNT`     | Server → All    | `{ count }`                            | Active users count update        |
+| `CLAIM_REJECTED` | Server → Client | `{ tileId, reason }`                   | Claim was rejected               |
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- **Next.js 16** - React framework with App Router
+- **TailwindCSS 4** - Utility-first CSS
+- **Framer Motion** - Animation library
+- **Socket.io Client** - WebSocket client
+
+### Backend
+
+- **Express 5** - Web framework
+- **Socket.io** - Real-time bidirectional communication
+- **Prisma** - Type-safe ORM
+- **SQLite** - Local database
+
+### Monorepo
+
+- **Turborepo** - Build system
+- **pnpm** - Package manager
+- **TypeScript** - Type safety throughout
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm 9+
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repo-url>
+cd GridSync
+
+# Install dependencies
+pnpm install
+
+# Setup the database
+cd apps/api
+pnpm db:push      # Push schema to SQLite
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Development
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+```bash
+# From the root directory, start all apps
+pnpm dev
 
-```sh
-turbo build --filter=docs
+# Or start individually:
+# Terminal 1 - API server (port 3001)
+cd apps/api && pnpm dev
+
+# Terminal 2 - Web app (port 3000)
+cd apps/web && pnpm dev
 ```
 
-Without global `turbo`:
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+### Building
+
+```bash
+# Build all apps
+pnpm build
 ```
 
-### Develop
+## 🚢 Deployment (Coolify)
 
-To develop all apps and packages, run the following command:
+GridSync deploys as a **monolithic service** with both API and Web running together.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### Coolify Setup
 
-```sh
-cd my-turborepo
-turbo dev
+1. **Create New Resource** → Application → Choose your Git provider
+2. **Select Repository** → GridSync
+3. **Build Pack** → Choose **Nixpacks** (recommended) or **Dockerfile**
+
+### Using Nixpacks (Recommended)
+
+Coolify auto-detects `nixpacks.toml`. Just set environment variables:
+
+```
+PORT=3000
+API_PORT=3001
+NEXT_PUBLIC_SOCKET_URL=https://your-domain.com:3001
 ```
 
-Without global `turbo`, use your package manager:
+### Using Dockerfile
 
-```sh
-cd my-turborepo
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+If using Dockerfile, ensure:
+- **Ports Exposed**: `3000` (Web)
+- **Health Check Path**: `/`
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | Next.js web server port |
+| `API_PORT` | `3001` | Socket.io API server (internal) |
+| `NEXT_PUBLIC_SOCKET_URL` | `http://localhost:3001` | WebSocket URL for frontend |
+| `DATABASE_URL` | `file:./dev.db` | SQLite database path |
+
+### Important: WebSocket Configuration
+
+For Socket.io to work with Coolify's reverse proxy, set `NEXT_PUBLIC_SOCKET_URL` to your domain with the API port:
+
+```
+# If your domain is gridsync.example.com
+NEXT_PUBLIC_SOCKET_URL=https://gridsync.example.com:3001
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Or use a path-based approach by exposing both ports through Coolify.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+### Local Testing
 
-```sh
-turbo dev --filter=web
+```bash
+# Build everything
+pnpm build
+
+# Run production server locally
+pnpm start
 ```
 
-Without global `turbo`:
+## 📊 Database Schema
 
-```sh
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```prisma
+model Tile {
+  id        String   @id          // Format: "x-y" (e.g., "15-20")
+  x         Int                   // X coordinate (0-39)
+  y         Int                   // Y coordinate (0-39)
+  ownerId   String?               // User ID who owns this tile
+  color     String?               // Hex color of the owner
+  updatedAt DateTime @updatedAt   // Last update timestamp
+
+  @@unique([x, y])
+  @@index([ownerId])
+}
 ```
 
-### Remote Caching
+## 🎨 UI/UX Design
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+### Color Palette
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+- **Background**: Deep slate (`#09090b`)
+- **Unclaimed tiles**: Subtle gray (`#18181b`)
+- **Borders**: Zinc (`#27272a`)
+- **User colors**: 16 vibrant neon colors (coral, teal, cyan, etc.)
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+### Animations
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+- **Tile hover**: Scale up 8% + border highlight
+- **Tile click**: Scale down 5% (press effect)
+- **Tile claim**: Scale pulse + glow animation
+- **Status indicators**: Pulsing dots
+- **Transitions**: 150-300ms with ease-out
 
-```sh
-cd my-turborepo
-turbo login
+### Accessibility
+
+- Keyboard navigation support
+- ARIA labels on tiles
+- Focus indicators
+- High contrast colors
+
+## ⚡ Performance Optimizations
+
+1. **React.memo** - Tile components only re-render when their data changes
+2. **Efficient state updates** - Only update changed tile in state
+3. **Small WebSocket payloads** - Send only the changed tile, not full grid
+4. **CSS Grid** - Native grid layout for 1600 tiles
+5. **Framer Motion** - Hardware-accelerated animations
+
+## 📁 Key Files
+
+| File                                | Description                         |
+| ----------------------------------- | ----------------------------------- |
+| `apps/api/src/index.ts`             | Main server with Socket.io handlers |
+| `apps/web/app/page.tsx`             | Main grid page component            |
+| `apps/web/hooks/use-grid-socket.ts` | Socket.io client hook               |
+| `packages/ui/src/tile.tsx`          | Individual tile component           |
+| `packages/ui/src/grid.tsx`          | Grid container component            |
+| `packages/types/src/index.ts`       | Shared types & constants            |
+
+## 🔧 Configuration
+
+### Environment Variables
+
+```bash
+# apps/web/.env.local
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+
+# apps/api/.env
+PORT=3001
+DATABASE_URL="file:./dev.db"
 ```
 
-Without global `turbo`, use your package manager:
+### Grid Size
 
-```sh
-cd my-turborepo
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+The grid size can be configured in `packages/types/src/index.ts`:
+
+```typescript
+export const GRID_SIZE = 40; // 40x40 = 1600 tiles
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## 🧪 API Endpoints
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+| Endpoint  | Method | Description                                       |
+| --------- | ------ | ------------------------------------------------- |
+| `/health` | GET    | Health check, returns `{ status, users }`         |
+| `/stats`  | GET    | Grid statistics (total, claimed, unclaimed tiles) |
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## 🤝 Contributing
 
-```sh
-turbo link
-```
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing`)
+5. Open a Pull Request
 
-Without global `turbo`:
+## 📝 License
 
-```sh
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
+MIT License - feel free to use this project for learning or as a starting point for your own real-time applications.
 
-## Useful Links
+---
 
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Built with ❤️ using Next.js, Socket.io, Prisma, and Turborepo

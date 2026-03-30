@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Tile {
+  id        String   @id
+  x         Int
+  y         Int
+  ownerId   String?
+  ownerName String?
+  color     String?
+  updatedAt DateTime @updatedAt
+
+  @@unique([x, y])
+  @@index([ownerId])
+}

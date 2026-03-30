@@ -1,50 +1,90 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import "tailwindcss";
+
+@theme {
+  /* Color palette - Linear/Vercel inspired dark theme */
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+  --color-border: #27272a;
+  --color-ring: #3f3f46;
+
+  /* Accent colors */
+  --color-primary: #fafafa;
+  --color-primary-foreground: #18181b;
+  --color-secondary: #27272a;
+  --color-secondary-foreground: #fafafa;
+
+  /* Semantic colors */
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+
+  /* Grid specific */
+  --color-tile-unclaimed: #18181b;
+  --color-tile-border: #27272a;
+  --color-tile-hover: #3f3f46;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Shadows */
+  --shadow-glow: 0 0 20px 0 var(--tw-shadow-color);
+
+  /* Animations */
+  --animate-pulse-subtle: pulse-subtle 2s ease-in-out infinite;
+  --animate-glow: glow 1.5s ease-in-out infinite alternate;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
   }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px var(--tw-shadow-color);
+  }
+  to {
+    box-shadow: 0 0 15px var(--tw-shadow-color);
+  }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-}
-
+/* Base styles */
 * {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+  @apply border-border;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+html {
+  @apply antialiased scroll-smooth;
+  color-scheme: dark;
 }
 
-.imgDark {
-  display: none;
+body {
+  @apply bg-background text-foreground font-sans;
+  min-height: 100vh;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
 }
