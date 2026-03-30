@@ -2,11 +2,13 @@
 # Single service deployment (API + Web)
 
 [phases.setup]
-nixPkgs = ["nodejs_20", "openssl"]
+# Include pnpm in the Nix environment so it is available in build containers
+nixPkgs = ["nodejs_20", "pnpm", "openssl"]
 aptPkgs = ["openssl"]
 
 [phases.install]
-cmds = ["npm install -g pnpm@9", "pnpm install"]
+# pnpm is installed by the Nix environment; use it directly
+cmds = ["pnpm install --frozen-lockfile"]
 
 [phases.build]
 cmds = [
