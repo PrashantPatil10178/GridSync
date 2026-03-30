@@ -45,7 +45,7 @@ apiProcess.on("error", (error) => {
 
 // Wait for API to be ready, then start Next.js
 setTimeout(() => {
-  console.log("🌐 Starting Next.js server...");
+  console.log(" Starting Next.js server...");
 
   const webProcess = spawn(
     "node",
