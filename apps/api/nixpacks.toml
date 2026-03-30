@@ -1,0 +1,30 @@
+# Nixpacks configuration for GridSync Backend API - Coolify
+# Deploy this as a separate service in Coolify
+# Set Base Directory in Coolify to: /apps/api
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "pnpm", "openssl"]
+aptPkgs = ["openssl"]
+
+[phases.install]
+cmds = [
+  "cd ../.. && pnpm install --frozen-lockfile"
+]
+
+[phases.build]
+cmds = [
+  "npx prisma generate",
+  "cd ../.. && pnpm turbo run build --filter=api"
+]
+
+[start]
+cmd = "node dist/index.js"
+
+[variables]
+NODE_ENV = "production"
+PORT = "4000"
+# REPLACE WITH YOUR ACTUAL URLs
+# Set these in Coolify environment variables:
+# - DATABASE_URL=postgresql://user:password@host:5432/gridsync
+# - FRONTEND_URL=https://your-frontend-url.com
+# - BACKEND_URL=https://your-backend-url.com
