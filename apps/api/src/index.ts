@@ -29,7 +29,9 @@ const httpServer = createServer(app);
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: process.env.NODE_ENV === 'production' 
+    ? true  // Allow all origins in production
+    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true,
 };
 
@@ -389,12 +391,13 @@ app.get('/leaderboard', async (_req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Start server
 async function start() {
   await initializeGrid();
-  httpServer.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  httpServer.listen(Number(PORT), HOST, () => {
+    console.log(`🚀 Server running on http://${HOST}:${PORT}`);
     console.log(`📊 Grid size: ${GRID_SIZE}x${GRID_SIZE} (${GRID_SIZE * GRID_SIZE} tiles)`);
   });
 }
